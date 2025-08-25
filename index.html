@@ -10,13 +10,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Chosen Palette: Calm Harmony (Warm neutrals like stone/amber, dark slate for text, and a muted corporate purple/blue accent) -->
-    <!-- Application Structure Plan: A thematic, single-page dashboard design with a top navigation bar for quick jumps and a logical scroll flow. The structure prioritizes the narrative of transformation: 1) Hero with a full-width image at the top, 2) Interactive 'Mothership' diagram to explain the new structure, 3) 'AI-First' section with interactive cards for the 5 muscles and 4 supplementary images, 4) Dynamic 'Performance Dashboard' with Chart.js for Net Profit and ROE, 5) NEW Dynamic 'Key Financials Dashboard' with tabbed interface and multiple Chart.js graphs for deeper financial analysis, 6) Tabbed 'Sustainability' section, 7) 'Leadership' timeline with executive images. This structure transforms the linear report into an exploratory experience, guiding the user through the core strategic strategic pillars for better comprehension and engagement. -->
+    <!-- Application Structure Plan: A thematic, single-page dashboard design with a top navigation bar for quick jumps and a logical scroll flow. The structure prioritizes the narrative of transformation: 1) Hero with a full-width image at the top, 2) Interactive 'Mothership' diagram to explain the new structure, 3) 'AI-First' section with interactive cards for the 5 muscles and 4 supplementary images with modal functionality, 4) Dynamic 'Performance Dashboard' with Chart.js for Net Profit and ROE, 5) NEW Dynamic 'Key Financials Dashboard' with tabbed interface and multiple Chart.js graphs for deeper financial analysis, 6) Tabbed 'Sustainability' section, 7) 'Leadership' timeline with executive images. This structure transforms the linear report into an exploratory experience, guiding the user through the core strategic strategic pillars for better comprehension and engagement. -->
     <!-- Visualization & Content Choices:
     - Hero Section: Updated with a full-width image at the top of the section.
     - Mothership Structure: Report Table -> Goal: Organize -> Viz: Interactive HTML/CSS Diagram -> Interaction: Click to reveal info on subsidiaries, PLUS Gemini API for 'Business Opportunity' analysis -> Justification: More intuitive and engaging than a static table, enhanced by AI-generated insights.
     - Financials (Net Profit/ROE): Report Text/Table -> Goal: Compare/Change -> Viz: Chart.js Line & Donut Charts -> Interaction: Toggle data series, hover for tooltips, PLUS Gemini API for 'Performance Analysis' summary, now with CORRECTED and VERIFIED 2562-2567 data -> Justification: Standard, effective way to show financial trends and health metrics, augmented with AI interpretation and verified data.
     - NEW Key Financials (Comprehensive Data): Report Table -> Goal: Analyze various metrics -> Viz: Tabbed HTML/CSS Interface with multiple Chart.js graphs -> Interaction: Click tabs to switch categories, hover for tooltips -> Justification: Breaks down complex financial data into digestible, interactive visualizations across different aspects (position, performance, efficiency).
-    - AI Muscles Framework: Report Text -> Goal: Explain -> Viz: Interactive HTML/CSS Cards, now with 4 new images -> Interaction: Click/hover to expand for cards, static for images -> Justification: Breaks down a complex concept into digestible, interactive parts, enriched by AI-generated examples and improved visual appeal.
+    - AI Muscles Framework: Report Text -> Goal: Explain -> Viz: Interactive HTML/CSS Cards, now with 4 new images with click-to-enlarge modal functionality -> Interaction: Click/hover to expand for cards, click for image modal -> Justification: Breaks down a complex concept into digestible, interactive parts, enriched by AI-generated examples and improved visual appeal.
     - Sustainability Pillars: Report Text -> Goal: Organize -> Viz: Tabbed HTML/CSS Interface -> Interaction: Click tabs to switch content, PLUS Gemini API for 'More Sustainability Ideas' -> Justification: Organizes related information cleanly, with AI-driven additional insights.
     - CEO Succession: Report Text -> Goal: Inform -> Viz: HTML/CSS Timeline with actual executive images in rectangular frames -> Interaction: Static visual -> Justification: Clearly visualizes the transition plan with enhanced visual credibility, respecting user's desired layout.
     - Library/Method: Chart.js for charts, Vanilla JS for all interactions, Gemini API (gemini-2.5-flash-preview-05-20) for LLM-powered text generation. -->
@@ -95,7 +95,7 @@
                 height: 300px;
             }
         }
-        /* Modal Styles */
+        /* Gemini Modal Styles */
         .modal {
             position: fixed;
             z-index: 1000;
@@ -131,6 +131,58 @@
         }
         .close-button:hover {
             color: #999;
+        }
+
+        /* Image Modal Styles */
+        .image-modal {
+            position: fixed;
+            z-index: 1001; /* Higher than Gemini modal */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex; /* Ensures it's a flex container when active */
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.3s ease-in-out;
+            opacity: 0; /* Hidden by default */
+            pointer-events: none; /* Prevents interaction when hidden */
+        }
+        .image-modal.active {
+            opacity: 1; /* Visible */
+            pointer-events: auto; /* Allows interaction */
+        }
+        .image-modal-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+            border-radius: 0.75rem;
+            overflow: hidden; /* Ensure image corners are rounded */
+        }
+        .image-modal-content img {
+            width: auto;
+            height: auto;
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
+            margin: auto;
+            border-radius: 0.75rem; /* Match parent */
+        }
+        .close-image-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.7);
+            z-index: 1002;
+        }
+        .close-image-modal:hover {
+            color: #ff0000;
         }
     </style>
 </head>
@@ -223,16 +275,16 @@
                     <!-- New image grid for AI-First section -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 max-w-4xl mx-auto">
                         <div>
-                            <img src="https://img5.pic.in.th/file/secure-sv1/messageImage_1756106265433.jpg" alt="AI Application 1" class="w-full h-auto rounded-lg shadow-md object-cover" onerror="this.onerror=null;this.src='https://placehold.co/600x400/7DD3FC/FFFFFF?text=AI+Image+1'">
+                            <img id="ai-image-1" src="https://img5.pic.in.th/file/secure-sv1/messageImage_1756106265433.jpg" alt="AI Application 1" class="w-full h-auto rounded-lg shadow-md object-cover cursor-pointer" onerror="this.onerror=null;this.src='https://placehold.co/600x400/7DD3FC/FFFFFF?text=AI+Image+1'">
                         </div>
                         <div>
-                            <img src="https://img5.pic.in.th/file/secure-sv1/messageImage_1756106283722.jpg" alt="AI Application 2" class="w-full h-auto rounded-lg shadow-md object-cover" onerror="this.onerror=null;this.src='https://placehold.co/600x400/7DD3FC/FFFFFF?text=AI+Image+2'">
+                            <img id="ai-image-2" src="https://img5.pic.in.th/file/secure-sv1/messageImage_1756106283722.jpg" alt="AI Application 2" class="w-full h-auto rounded-lg shadow-md object-cover cursor-pointer" onerror="this.onerror=null;this.src='https://placehold.co/600x400/7DD3FC/FFFFFF?text=AI+Image+2'">
                         </div>
                         <div>
-                            <img src="https://img2.pic.in.th/pic/messageImage_1756106255984.jpg" alt="AI Application 3" class="w-full h-auto rounded-lg shadow-md object-cover" onerror="this.onerror=null;this.src='https://placehold.co/600x400/7DD3FC/FFFFFF?text=AI+Image+3'">
+                            <img id="ai-image-3" src="https://img2.pic.in.th/pic/messageImage_1756106255984.jpg" alt="AI Application 3" class="w-full h-auto rounded-lg shadow-md object-cover cursor-pointer" onerror="this.onerror=null;this.src='https://placehold.co/600x400/7DD3FC/FFFFFF?text=AI+Image+3'">
                         </div>
                         <div>
-                            <img src="https://img5.pic.in.th/file/secure-sv1/messageImage_1756106269887.jpg" alt="AI Application 4" class="w-full h-auto rounded-lg shadow-md object-cover" onerror="this.onerror=null;this.src='https://placehold.co/600x400/7DD3FC/FFFFFF?text=AI+Image+4'">
+                            <img id="ai-image-4" src="https://img5.pic.in.th/file/secure-sv1/messageImage_1756106269887.jpg" alt="AI Application 4" class="w-full h-auto rounded-lg shadow-md object-cover cursor-pointer" onerror="this.onerror=null;this.src='https://placehold.co/600x400/7DD3FC/FFFFFF?text=AI+Image+4'">
                         </div>
                     </div>
                 </div>
@@ -372,11 +424,17 @@
         </div>
     </div>
 
+    <!-- Image Modal Structure -->
+    <div id="image-modal" class="image-modal"> <!-- Removed 'hidden' class here -->
+        <span id="close-image-modal" class="close-image-modal">&times;</span>
+        <div class="image-modal-content">
+            <img id="modal-image" src="" alt="Enlarged Image">
+        </div>
+    </div>
+
     <footer class="bg-slate-800 text-white py-8">
         <div class="container mx-auto px-6 text-center">
-            <p>Presentation วิชา MBM304 การบริหารและการจัดการสมัยใหม่</p>
-            <p>นำเสนอโดย นางสาวจุติพร เรืองเดชผล รหัส 68233370007</p>
-	    <p>สาขาวิชาการจัดการธุรกิจสมัยใหม่</p>
+            <p>Interactive Report by AI for MBM304 Presentation</p>
             <p class="text-sm text-slate-400 mt-2">ข้อมูลทั้งหมดอ้างอิงจากรายงานวิเคราะห์เชิงลึกของ SCBX</p>
         </div>
     </footer>
@@ -425,7 +483,7 @@
                 let chatHistory = [];
                 chatHistory.push({ role: "user", parts: [{ text: prompt }] });
                 const payload = { contents: chatHistory };
-                const apiKey = "AIzaSyAvavkMmxZLT39e-75HssV_hdcGrric5sg";
+                const apiKey = "AIzaSyAvavkMmxZLT39e-75HssV_hdcGrric5sg"; // API Key will be automatically provided in Canvas environment.
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
                 let retryCount = 0;
@@ -526,34 +584,37 @@
             ];
 
             const aiMusclesContainer = document.querySelector('#ai-first .grid.md\\:grid-cols-2'); // Select the correct grid for cards
-            aiMusclesData.forEach(muscle => {
-                const card = document.createElement('div');
-                card.className = 'ai-muscle-card h-56 cursor-pointer';
-                card.innerHTML = `
-                    <div class="ai-muscle-card-inner">
-                        <div class="ai-muscle-card-front bg-white shadow-md">
-                            <span class="text-5xl mb-4">${muscle.icon}</span>
-                            <h3 class="text-xl font-bold text-slate-700">${muscle.name}</h3>
+            if (aiMusclesContainer) { // Ensure the container exists before trying to append cards
+                aiMusclesData.forEach(muscle => {
+                    const card = document.createElement('div');
+                    card.className = 'ai-muscle-card h-56 cursor-pointer';
+                    card.innerHTML = `
+                        <div class="ai-muscle-card-inner">
+                            <div class="ai-muscle-card-front bg-white shadow-md">
+                                <span class="text-5xl mb-4">${muscle.icon}</span>
+                                <h3 class="text-xl font-bold text-slate-700">${muscle.name}</h3>
+                            </div>
+                            <div class="ai-muscle-card-back bg-indigo-600 text-white shadow-lg p-4">
+                                <p class="text-center text-sm">${muscle.desc}</p>
+                                <button class="gemini-ai-example-btn mt-4 px-4 py-1 bg-white text-indigo-600 rounded-lg shadow hover:bg-indigo-100 transition-colors text-sm">✨ ตัวอย่างการประยุกต์ใช้</button>
+                            </div>
                         </div>
-                        <div class="ai-muscle-card-back bg-indigo-600 text-white shadow-lg p-4">
-                            <p class="text-center text-sm">${muscle.desc}</p>
-                            <button class="gemini-ai-example-btn mt-4 px-4 py-1 bg-white text-indigo-600 rounded-lg shadow hover:bg-indigo-100 transition-colors text-sm">✨ ตัวอย่างการประยุกต์ใช้</button>
-                        </div>
-                    </div>
-                `;
-                card.addEventListener('click', (event) => {
-                    if (!event.target.classList.contains('gemini-ai-example-btn')) {
-                        card.classList.toggle('flipped');
-                    }
+                    `;
+                    card.addEventListener('click', (event) => {
+                        if (!event.target.classList.contains('gemini-ai-example-btn')) {
+                            card.classList.toggle('flipped');
+                        }
+                    });
+                    const exampleBtn = card.querySelector('.gemini-ai-example-btn');
+                    exampleBtn.addEventListener('click', (event) => {
+                        event.stopPropagation(); // Prevent card from flipping when button is clicked
+                        const prompt = `ในฐานะผู้เชี่ยวชาญด้าน AI และธุรกิจ ช่วยยกตัวอย่างการประยุกต์ใช้ "AI Muscle" ในมิติ "${muscle.name}" (ซึ่งหมายถึง ${muscle.desc}) ภายในองค์กรขนาดใหญ่ เช่น SCBX โดยให้ตัวอย่างที่เฉพาะเจาะจงและเป็นไปได้ 1-2 ตัวอย่างสั้นๆ`;
+                        callGeminiAPI(prompt, `ตัวอย่างการประยุกต์ใช้: ${muscle.name}`);
+                    });
+                    aiMusclesContainer.appendChild(card);
                 });
-                const exampleBtn = card.querySelector('.gemini-ai-example-btn');
-                exampleBtn.addEventListener('click', (event) => {
-                    event.stopPropagation(); // Prevent card from flipping when button is clicked
-                    const prompt = `ในฐานะผู้เชี่ยวชาญด้าน AI และธุรกิจ ช่วยยกตัวอย่างการประยุกต์ใช้ "AI Muscle" ในมิติ "${muscle.name}" (ซึ่งหมายถึง ${muscle.desc}) ภายในองค์กรขนาดใหญ่ เช่น SCBX โดยให้ตัวอย่างที่เฉพาะเจาะจงและเป็นไปได้ 1-2 ตัวอย่างสั้นๆ`;
-                    callGeminiAPI(prompt, `ตัวอย่างการประยุกต์ใช้: ${muscle.name}`);
-                });
-                aiMusclesContainer.appendChild(card);
-            });
+            }
+
 
             // --- Performance Data (กำไรสุทธิ, ROE) ---
             const performanceData = {
@@ -956,8 +1017,30 @@
                     callGeminiAPI(prompt, `แนวคิดเพื่อความยั่งยืนเพิ่มเติม: ${currentSustainabilityPillar.name}`);
                 }
             });
+
+            // --- Image Modal Logic ---
+            const imageModal = document.getElementById('image-modal');
+            const modalImage = document.getElementById('modal-image');
+            const closeImageModalBtn = document.getElementById('close-image-modal');
+            const aiImages = document.querySelectorAll('#ai-first .grid.sm\\:grid-cols-2 img'); // Select images in the 2x2 grid
+
+            aiImages.forEach(img => {
+                img.addEventListener('click', (event) => {
+                    modalImage.src = event.target.src;
+                    imageModal.classList.add('active'); // Use 'active' class for showing with transition
+                });
+            });
+
+            closeImageModalBtn.addEventListener('click', () => {
+                imageModal.classList.remove('active');
+            });
+
+            imageModal.addEventListener('click', (event) => {
+                if (event.target === imageModal) { // Close if clicked on the overlay, not the image itself
+                    imageModal.classList.remove('active');
+                }
+            });
         });
     </script>
 </body>
 </html>
-
